@@ -1,2 +1,2 @@
 # ServerDockerSettings
-My backup dockers scripts for server
+Здесь я буду хранить все скипты для докеров своего сервера
