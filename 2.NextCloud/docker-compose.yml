@@ -1,0 +1,45 @@
+
+version: '3.5'
+
+networks:
+  nextcloud_network:
+    name: nextcloud_network
+  db_network:
+    external:
+      name: mariadb_db_network
+
+volumes:
+  nextcloud:
+
+services:
+  app:
+    container_name: nextcloud-fpm
+    image: nextcloud:fpm
+    restart: unless-stopped
+    networks:
+      - db_network
+      - nextcloud_network
+    volumes:
+      - ${CONFIG_FOLDER}/nextcloud-fpm/html:/var/www/html:rw
+      - ${DISK_FOLDER}:/srvdisk:rw
+    environment:
+      - NEXTCLOUD_TRUSTED_DOMAINS='${NEXTCLOUD_FQDN}'
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_HOST=${MYSQL_HOST}
+      - OVERWRITEWEBROOT=disk
+
+  web:
+    container_name: nextcloud-nginx
+    image: nginx:alpine
+    restart: always
+    ports:
+      - 6080:80
+    volumes:
+      - ./web/conf.d:/etc/nginx/conf.d:ro
+      - nextcloud:/var/www/html:ro
+    depends_on:
+      - app
+    networks:
+      - nextcloud_network
